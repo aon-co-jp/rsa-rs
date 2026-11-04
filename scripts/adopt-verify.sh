@@ -3,7 +3,7 @@
 export PATH="$HOME/.cargo/bin:/usr/local/bin:/usr/bin:/bin"
 R=$1; shift
 export CARGO_TARGET_DIR="$HOME/ac-target/$R"
-cd ~/adopt/$R || exit 1
+cd ~/adopt/$R/${SUB:-.} || exit 1
 cargo test --no-fail-fast --color never "$@" > /tmp/verify-$R.log 2>&1
 echo "exit=$?" >> /tmp/verify-$R.log
 awk '/^test result:/ {p+=$4; f+=$6} END {print "passed="p" failed="f}' /tmp/verify-$R.log

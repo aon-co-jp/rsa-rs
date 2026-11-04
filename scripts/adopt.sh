@@ -7,6 +7,7 @@ export CARGO_TARGET_DIR="$HOME/ac-target/$R"
 mkdir -p ~/adopt && cd ~/adopt
 [ -d $R ] || git clone -q https://github.com/aon-co-jp/$R.git
 cd $R && git checkout -q -- . && git log --oneline | head -1
+cd ${SUB:-.}
 git config user.name "$(git -C /mnt/f/rsa-rs config user.name)"; git config user.email "$(git -C /mnt/f/rsa-rs config user.email)"
 V10=$(grep -c 'version = "0.10.0-rc' <(grep -A1 '^name = "rsa"$' Cargo.lock) )
 V09=$(grep -c 'version = "0.9' <(grep -A1 '^name = "rsa"$' Cargo.lock) )
