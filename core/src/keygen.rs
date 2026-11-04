@@ -1,8 +1,8 @@
 //! 鍵生成 (素数は `crypto-primes`。構成は RFC 8017 §3.2 / FIPS 186-5 B.3 の要件に沿う)。
 
+use crate::key::Rs;
 use alloc::vec::Vec;
 use core::convert::Infallible;
-use crate::key::Rs;
 use crypto_bigint::{BoxedUint, NonZero};
 use crypto_primes::{
     hazmat::{SetBits, SmallFactorsSieveFactory},
@@ -59,7 +59,10 @@ pub fn generate(rng: &mut dyn FillBytes, bits: usize, e: &BoxedUint) -> Result<P
     if bits < 128 || bits > crate::key::MAX_SIZE {
         return Err(Error::InvalidKey);
     }
-    let mut r = FillRng { inner: rng, failed: false };
+    let mut r = FillRng {
+        inner: rng,
+        failed: false,
+    };
     let (pb, qb) = ((bits / 2) as u32, (bits - bits / 2) as u32);
     loop {
         let p = gen_prime(&mut r, pb)?;
@@ -75,7 +78,11 @@ pub fn generate(rng: &mut dyn FillBytes, bits: usize, e: &BoxedUint) -> Result<P
             continue;
         }
         // |p - q| が小さすぎる鍵 (Fermat 法で割れる) を避ける: > 2^(bits/2 - 100)
-        let diff = if pw > qw { pw.wrapping_sub(&qw) } else { qw.wrapping_sub(&pw) };
+        let diff = if pw > qw {
+            pw.wrapping_sub(&qw)
+        } else {
+            qw.wrapping_sub(&pw)
+        };
         if bits >= 1024 && (diff.bits_vartime() as usize) <= bits / 2 - 100 {
             continue;
         }

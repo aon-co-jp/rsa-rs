@@ -1,0 +1,44 @@
+[package]
+name = "rsa"
+# `rsa` 0.9.10 (sqlx-mysql 0.8.x が要求する版) と同じ版番号を名乗る。[patch.crates-io] 用。公開しない。
+version = "0.9.10"
+edition = "2021"
+rust-version = "1.85"
+description = "rsa 0.9 API-compatible public-key subset (OAEP encryption) on rsa-rs-core (avoids RUSTSEC-2023-0071)"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[workspace]
+
+[lib]
+name = "rsa"
+
+[features]
+default = ["std", "pem", "u64_digit"]
+std = ["digest/std", "pkcs1/std", "pkcs8/std", "rand_core/std", "signature/std"]
+pem = ["pkcs1/pem", "pkcs8/pem"]
+u64_digit = ["num-bigint/u64_digit"]
+# 上流互換の feature 名 (未実装 = 機能なし)
+getrandom = ["rand_core/getrandom"]
+hazmat = []
+nightly = []
+pkcs5 = ["pkcs8/encryption"]
+serde = []
+
+[dependencies]
+rsa-rs-core = { path = "../core", default-features = false, features = ["os-rng"] }
+crypto-bigint = { version = ">=0.7.10, <0.8", default-features = false, features = ["alloc", "zeroize"] }
+digest = { version = "0.10.5", default-features = false, features = ["alloc"] }
+num-bigint = { package = "num-bigint-dig", version = "0.8.6", default-features = false }
+pkcs1 = { version = "0.7.5", default-features = false, features = ["alloc", "pkcs8"] }
+pkcs8 = { version = "0.10.2", default-features = false, features = ["alloc"] }
+rand_core = { version = "0.6.4", default-features = false }
+signature = { version = "2", default-features = false }
+zeroize = { version = "1", default-features = false, features = ["alloc"] }
+
+[dev-dependencies]
+sha1 = "0.10"
+sha2 = "0.10"
+hex = "0.4"
+rand = "0.8"
+rsa-rs-core = { path = "../core" }

@@ -9,9 +9,9 @@
 //! 公開指数 e と公開値だけを使う演算 (RSAEP, 検証) は可変時間でよい。
 
 use alloc::vec::Vec;
-use crypto_bigint::{Integer, 
+use crypto_bigint::{
     modular::{BoxedMontyForm, BoxedMontyParams},
-    BoxedUint, NonZero, Odd, Resize,
+    BoxedUint, Integer, NonZero, Odd, Resize,
 };
 use zeroize::Zeroize;
 
@@ -36,7 +36,7 @@ fn normalize(x: &BoxedUint) -> BoxedUint {
 }
 
 /// RSA 公開鍵。
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct PublicKey {
     n: NonZero<BoxedUint>,
     e: BoxedUint,
@@ -235,26 +235,44 @@ impl PrivateKey {
         let prec = round_up_64(p.bits_vartime().max(q.bits_vartime()));
         let p = p.rs(prec).ok_or(Error::Internal)?;
         let q = q.rs(prec).ok_or(Error::Internal)?;
-        let p_params = BoxedMontyParams::new(Odd::new(p.clone()).into_option().ok_or(Error::InvalidKey)?);
-        let q_params = BoxedMontyParams::new(Odd::new(q.clone()).into_option().ok_or(Error::InvalidKey)?);
+        let p_params =
+            BoxedMontyParams::new(Odd::new(p.clone()).into_option().ok_or(Error::InvalidKey)?);
+        let q_params =
+            BoxedMontyParams::new(Odd::new(q.clone()).into_option().ok_or(Error::InvalidKey)?);
 
         let dprec = d.bits_precision().max(prec);
         let dw = d.rs(dprec).ok_or(Error::Internal)?;
         let one = BoxedUint::one_with_precision(prec);
         let dp = {
-            let m = NonZero::new((&p).wrapping_sub(&one)).into_option().ok_or(Error::InvalidKey)?;
-            dw.rem_vartime(&NonZero::new(m.as_ref().rs(dprec).ok_or(Error::Internal)?).into_option().ok_or(Error::Internal)?)
-                .rs(prec)
-                .ok_or(Error::Internal)?
+            let m = NonZero::new((&p).wrapping_sub(&one))
+                .into_option()
+                .ok_or(Error::InvalidKey)?;
+            dw.rem_vartime(
+                &NonZero::new(m.as_ref().rs(dprec).ok_or(Error::Internal)?)
+                    .into_option()
+                    .ok_or(Error::Internal)?,
+            )
+            .rs(prec)
+            .ok_or(Error::Internal)?
         };
         let dq = {
-            let m = NonZero::new((&q).wrapping_sub(&one)).into_option().ok_or(Error::InvalidKey)?;
-            dw.rem_vartime(&NonZero::new(m.as_ref().rs(dprec).ok_or(Error::Internal)?).into_option().ok_or(Error::Internal)?)
-                .rs(prec)
-                .ok_or(Error::Internal)?
+            let m = NonZero::new((&q).wrapping_sub(&one))
+                .into_option()
+                .ok_or(Error::InvalidKey)?;
+            dw.rem_vartime(
+                &NonZero::new(m.as_ref().rs(dprec).ok_or(Error::Internal)?)
+                    .into_option()
+                    .ok_or(Error::Internal)?,
+            )
+            .rs(prec)
+            .ok_or(Error::Internal)?
         };
         // qinv = q^-1 mod p
-        let q_mod_p = q.rem_vartime(&NonZero::new(p.clone()).into_option().ok_or(Error::InvalidKey)?);
+        let q_mod_p = q.rem_vartime(
+            &NonZero::new(p.clone())
+                .into_option()
+                .ok_or(Error::InvalidKey)?,
+        );
         let qinv = BoxedMontyForm::new(q_mod_p, &p_params)
             .invert()
             .into_option()
@@ -420,9 +438,16 @@ mod tests {
         let p = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/key1024.txt");
         let txt = std::fs::read_to_string(p).unwrap();
         let get = |k: &str| {
-            let l = txt.lines().find(|l| l.starts_with(&alloc::format!("{k}="))).unwrap();
+            let l = txt
+                .lines()
+                .find(|l| l.starts_with(&alloc::format!("{k}=")))
+                .unwrap();
             let s = &l[2..];
-            let s = if s.len() % 2 == 1 { alloc::format!("0{s}") } else { s.into() };
+            let s = if s.len() % 2 == 1 {
+                alloc::format!("0{s}")
+            } else {
+                s.into()
+            };
             BoxedUint::from_be_slice_vartime(&hex::decode(s).unwrap())
         };
         PrivateKey::from_components(get("n"), get("e"), get("d"), &[get("p"), get("q")]).unwrap()
@@ -432,17 +457,22 @@ mod tests {
     #[test]
     fn faulty_crt_value_is_detected_not_returned() {
         let good = key1024();
-        let c = BoxedUint::from_be_slice(&[0x42u8; 100], good.public().n().bits_precision()).unwrap();
+        let c =
+            BoxedUint::from_be_slice(&[0x42u8; 100], good.public().n().bits_precision()).unwrap();
         let ok = good.rsadp(&mut OsFill, &c).unwrap();
         // 正しい鍵では rsaep(rsadp(c)) == c
         assert_eq!(good.public().rsaep(&ok).unwrap(), c);
 
         let mut bad = good.clone();
-        bad.dp = bad.dp.wrapping_add(&BoxedUint::from_be_slice(&[2], bad.dp.bits_precision()).unwrap());
+        bad.dp = bad
+            .dp
+            .wrapping_add(&BoxedUint::from_be_slice(&[2], bad.dp.bits_precision()).unwrap());
         assert_eq!(bad.rsadp(&mut OsFill, &c), Err(Error::Internal));
 
         let mut bad = good.clone();
-        bad.dq = bad.dq.wrapping_add(&BoxedUint::from_be_slice(&[2], bad.dq.bits_precision()).unwrap());
+        bad.dq = bad
+            .dq
+            .wrapping_add(&BoxedUint::from_be_slice(&[2], bad.dq.bits_precision()).unwrap());
         assert_eq!(bad.rsadp(&mut OsFill, &c), Err(Error::Internal));
     }
 }

@@ -9,14 +9,19 @@ use rsa_rs_core::{oaep, pkcs1v15, BoxedUint, Error, HashFn, PrivateKey};
 use sha2::Digest;
 
 fn fx(name: &str) -> Vec<u8> {
-    let p = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures").join(name);
+    let p = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures")
+        .join(name);
     fs::read(&p).unwrap_or_else(|e| panic!("{}: {e}", p.display()))
 }
 
 fn load_key(bits: u32) -> PrivateKey {
     let txt = String::from_utf8(fx(&format!("key{bits}.txt"))).unwrap();
     let get = |k: &str| -> BoxedUint {
-        let line = txt.lines().find(|l| l.starts_with(&format!("{k}="))).unwrap();
+        let line = txt
+            .lines()
+            .find(|l| l.starts_with(&format!("{k}=")))
+            .unwrap();
         hex_uint(&line[2..])
     };
     PrivateKey::from_components(get("n"), get("e"), get("d"), &[get("p"), get("q")]).unwrap()
@@ -86,8 +91,13 @@ fn pkcs1v15_sign_is_byte_identical_to_openssl() {
             let ours = pkcs1v15::sign(&key, &mut OsFill, &prefix, &hashed).unwrap();
             assert_eq!(ours, fx(&format!("sig{bits}_{h}.bin")), "{bits} {h}");
             // OpenSSL の署名を我々が検証できる
-            pkcs1v15::verify(key.public(), &prefix, &hashed, &fx(&format!("sig{bits}_{h}.bin")))
-                .unwrap();
+            pkcs1v15::verify(
+                key.public(),
+                &prefix,
+                &hashed,
+                &fx(&format!("sig{bits}_{h}.bin")),
+            )
+            .unwrap();
         }
     }
 }
@@ -136,18 +146,39 @@ fn oaep_decrypts_openssl_ciphertexts() {
     let pt = fx("oaep_pt.bin");
     for h in ["sha1", "sha256"] {
         let hf = H(h);
-        let got = oaep::decrypt(&key, &mut OsFill, &hf, &hf, b"", &fx(&format!("oaep2048_{h}.bin")))
-            .unwrap();
+        let got = oaep::decrypt(
+            &key,
+            &mut OsFill,
+            &hf,
+            &hf,
+            b"",
+            &fx(&format!("oaep2048_{h}.bin")),
+        )
+        .unwrap();
         assert_eq!(got, pt, "{h}");
         // ラベル違いは失敗
         assert_eq!(
-            oaep::decrypt(&key, &mut OsFill, &hf, &hf, b"x", &fx(&format!("oaep2048_{h}.bin"))),
+            oaep::decrypt(
+                &key,
+                &mut OsFill,
+                &hf,
+                &hf,
+                b"x",
+                &fx(&format!("oaep2048_{h}.bin"))
+            ),
             Err(Error::Decryption)
         );
         // ハッシュ違いは失敗
         let other = H("sha512");
-        assert!(oaep::decrypt(&key, &mut OsFill, &other, &other, b"", &fx(&format!("oaep2048_{h}.bin")))
-            .is_err());
+        assert!(oaep::decrypt(
+            &key,
+            &mut OsFill,
+            &other,
+            &other,
+            b"",
+            &fx(&format!("oaep2048_{h}.bin"))
+        )
+        .is_err());
     }
 }
 
@@ -182,7 +213,10 @@ fn oaep_roundtrip_and_tamper() {
     // MGF1 のハッシュを OAEP のハッシュと別にできる
     let (a, b) = (H("sha256"), H("sha1"));
     let ct = oaep::encrypt(key.public(), &mut OsFill, &a, &b, b"", b"mixed").unwrap();
-    assert_eq!(oaep::decrypt(&key, &mut OsFill, &a, &b, b"", &ct).unwrap(), b"mixed");
+    assert_eq!(
+        oaep::decrypt(&key, &mut OsFill, &a, &b, b"", &ct).unwrap(),
+        b"mixed"
+    );
     assert!(oaep::decrypt(&key, &mut OsFill, &a, &a, b"", &ct).is_err());
 }
 
@@ -203,23 +237,43 @@ fn oaep_ciphertext_not_below_modulus_is_rejected() {
 fn key_validation() {
     let txt = String::from_utf8(fx("key1024.txt")).unwrap();
     let get = |k: &str| -> BoxedUint {
-        let line = txt.lines().find(|l| l.starts_with(&format!("{k}="))).unwrap();
+        let line = txt
+            .lines()
+            .find(|l| l.starts_with(&format!("{k}=")))
+            .unwrap();
         hex_uint(&line[2..])
     };
     let (n, e, d, p, q) = (get("n"), get("e"), get("d"), get("p"), get("q"));
     PrivateKey::from_components(n.clone(), e.clone(), d.clone(), &[p.clone(), q.clone()]).unwrap();
     // d を 1 ずらす
     let bad_d = d.wrapping_add(&BoxedUint::one());
-    assert!(PrivateKey::from_components(n.clone(), e.clone(), bad_d, &[p.clone(), q.clone()]).is_err());
+    assert!(
+        PrivateKey::from_components(n.clone(), e.clone(), bad_d, &[p.clone(), q.clone()]).is_err()
+    );
     // p と q を入れ替えても同じ鍵として受理される
     PrivateKey::from_components(n.clone(), e.clone(), d.clone(), &[q.clone(), p.clone()]).unwrap();
     // 素数が 1 個 / 3 個
     assert!(PrivateKey::from_components(n.clone(), e.clone(), d.clone(), &[p.clone()]).is_err());
-    assert!(PrivateKey::from_components(n.clone(), e.clone(), d.clone(), &[p.clone(), q.clone(), p.clone()]).is_err());
+    assert!(PrivateKey::from_components(
+        n.clone(),
+        e.clone(),
+        d.clone(),
+        &[p.clone(), q.clone(), p.clone()]
+    )
+    .is_err());
     // p == q
-    assert!(PrivateKey::from_components(n.clone(), e.clone(), d.clone(), &[p.clone(), p.clone()]).is_err());
+    assert!(
+        PrivateKey::from_components(n.clone(), e.clone(), d.clone(), &[p.clone(), p.clone()])
+            .is_err()
+    );
     // e が偶数 / 範囲外
-    assert!(PrivateKey::from_components(n.clone(), BoxedUint::from(4u64), d.clone(), &[p.clone(), q.clone()]).is_err());
+    assert!(PrivateKey::from_components(
+        n.clone(),
+        BoxedUint::from(4u64),
+        d.clone(),
+        &[p.clone(), q.clone()]
+    )
+    .is_err());
     assert!(PrivateKey::from_components(n, BoxedUint::from(1u64 << 40 | 1), d, &[p, q]).is_err());
 }
 
@@ -239,6 +293,10 @@ fn generated_keys_work() {
 
 /// 16 進文字列 (奇数桁可) を整数にする。
 fn hex_uint(s: &str) -> BoxedUint {
-    let s = if s.len() % 2 == 1 { format!("0{s}") } else { s.to_string() };
+    let s = if s.len() % 2 == 1 {
+        format!("0{s}")
+    } else {
+        s.to_string()
+    };
     BoxedUint::from_be_slice_vartime(&hex::decode(s).unwrap())
 }
