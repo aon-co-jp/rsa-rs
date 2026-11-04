@@ -1,0 +1,17 @@
+# VPS (AlmaLinux) 用の軽量ジョブ: 状況の取得と掲示の更新だけ。ビルド・試験は走らせない。
+# 配置は実装完成後、ユーザー確認のうえで (雛形のみ)。
+[Unit]
+Description=rsa-rs status refresh (lightweight, no build)
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=rsa-rs
+WorkingDirectory=/opt/rsa-rs
+Nice=19
+IOSchedulingClass=idle
+MemoryMax=256M
+ExecStartPre=/usr/bin/git pull --ff-only
+ExecStart=/bin/bash scripts/update-status.sh
+# 変化(終了コード10)は正常扱い
+SuccessExitStatus=10

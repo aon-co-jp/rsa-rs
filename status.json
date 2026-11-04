@@ -1,0 +1,13 @@
+{
+  "checked": "2026-11-04",
+  "rsa_rs_commit": "8589825",
+  "upstream_rsa_max_stable": "0.9.10",
+  "upstream_rsa_max": "0.10.0-rc.20",
+  "rustsec_2023_0071_patched": "[]",
+  "crypto_bigint_latest_stable": "0.7.10",
+  "crypto_bigint_required": ">=0.7.10",
+  "tests": "PASS",
+  "tests_at": "2026-11-04T04:18Z",
+  "audited": false,
+  "notice": "Experimental, NOT audited by any third party. / 実験的・第三者監査なし。"
+}

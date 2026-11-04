@@ -1,6 +1,9 @@
 # rsa-rs
 
-**日本語** | [English](#english)
+**日本語** | [English](#english) | [Deutsch](docs/README.de.md) | [Русский](docs/README.ru.md)
+
+> 状態表(最新の上流 rsa / RUSTSEC の状況・試験結果)は自動更新される [STATUS.md](STATUS.md) / [status.json](status.json) を参照。
+> **実験的・第三者監査なし**(下の「限界」参照)。
 
 `rsa` クレートの **互換置き換え** (RUSTSEC-2023-0071 / Marvin Attack 対策)。aon-co-jp 配下のリポジトリが
 依存経由で使っている範囲だけを、RFC 8017 に基づき自前で実装したものです。非公開リポジトリ。crates.io には公開しません。
@@ -117,3 +120,8 @@ Verified: byte-identical PKCS#1 v1.5 signatures vs OpenSSL, decryption of OpenSS
 Limitations: no audit; constant-time behaviour only sampled with a crude t-test (|t| < 1) — **no instruction-level review was done**
 and the bignum arithmetic's constant-time property is delegated to `crypto-bigint` 0.7.10+; Wycheproof only for RSA-2048/3072 PKCS#1 v1.5 verify and OAEP-2048 decrypt;
 fixtures contain throw-away test keys; Linux/WSL only.
+
+### 追記 / Note (2026-11-04)
+* 上流 `rsa` には 0.10.0-rc.20 が既にある。互換層は `0.10.0-rc.18` を名乗るため、`russh`/`ssh-key` が rc.19 以降を要求するようになったら互換層の版を上げて再検証すること(`STATUS.md` で最新版を確認)。
+  Upstream already has `rsa` 0.10.0-rc.20; the compat layer claims rc.18, so bump and re-verify when dependents move to a newer rc.
+* 夜間/朝の自動更新: `scripts/nightly.sh`(手元 WSL・全試験)、`scripts/update-status.sh`(軽量・VPS 可)、VPS 用 timer 雛形は `deploy/`(未配置)。
