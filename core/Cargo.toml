@@ -1,0 +1,25 @@
+[package]
+name = "rsa-rs-core"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.85"
+description = "Hash/RNG-agnostic RSA core (RFC 8017) used by the rsa-rs compatibility crates"
+license = "MIT OR Apache-2.0"
+publish = false
+
+[dependencies]
+# RUSTSEC-2024系の定数時間性修正を含む 0.7.10 以上を要求 (>=0.7.6 が下限)。
+crypto-bigint = { version = ">=0.7.10, <0.8", default-features = false, features = ["alloc", "zeroize", "rand_core"] }
+crypto-primes = { version = "0.7.2", default-features = false }
+rand_core = { version = "0.10", default-features = false }
+zeroize = "1"
+getrandom = { version = "0.3", optional = true }
+
+[features]
+default = ["os-rng"]
+os-rng = ["dep:getrandom"]
+
+[dev-dependencies]
+sha1 = "0.10"
+sha2 = "0.10"
+hex = "0.4"

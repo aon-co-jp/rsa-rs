@@ -1,0 +1,5 @@
+[workspace]
+members = ["core"]
+# 互換層は crate 名が両方 `rsa` のため、ワークスペースに入れず個別にビルドする。
+exclude = ["compat-0.9", "compat-0.10"]
+resolver = "2"
