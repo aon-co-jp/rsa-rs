@@ -107,12 +107,16 @@ fn signatures() {
         "rsa_signature_2048_sha256_test.json",
         "rsa_signature_2048_sha512_test.json",
         "rsa_signature_3072_sha256_test.json",
+        "rsa_signature_3072_sha512_test.json",
+        "rsa_signature_4096_sha256_test.json",
+        "rsa_signature_4096_sha512_test.json",
+        "rsa_signature_2048_sha384_test.json",
     ] {
         signature_file(f);
     }
 }
 
-fn oaep_file(name: &str, hash: &'static str) {
+fn oaep_file(name: &str) {
     let v = load(name);
     let (mut valid, mut invalid, mut acceptable) = (0, 0, 0);
     for g in v["testGroups"].as_array().unwrap() {
@@ -124,10 +128,10 @@ fn oaep_file(name: &str, hash: &'static str) {
             &[uint(&k["prime1"]), uint(&k["prime2"])],
         )
         .expect("wycheproof key");
-        let h = H(hash);
+        let (h, mg) = (H(sha_name(g)), H(mgf_name(g)));
         for t in g["tests"].as_array().unwrap() {
             let id = t["tcId"].as_u64().unwrap();
-            let r = oaep::decrypt(&key, &mut OsFill, &h, &h, &hx(&t["label"]), &hx(&t["ct"]));
+            let r = oaep::decrypt(&key, &mut OsFill, &h, &mg, &hx(&t["label"]), &hx(&t["ct"]));
             match t["result"].as_str().unwrap() {
                 "valid" => {
                     assert_eq!(r.unwrap_or_else(|e| panic!("{name} tc {id}: {e}")), hx(&t["msg"]), "tc {id}");
@@ -147,6 +151,21 @@ fn oaep_file(name: &str, hash: &'static str) {
 
 #[test]
 fn oaep() {
-    oaep_file("rsa_oaep_2048_sha256_mgf1sha256_test.json", "SHA-256");
-    oaep_file("rsa_oaep_2048_sha1_mgf1sha1_test.json", "SHA-1");
+    for f in [
+        "rsa_oaep_2048_sha256_mgf1sha256_test.json",
+        "rsa_oaep_2048_sha1_mgf1sha1_test.json",
+        "rsa_oaep_2048_sha256_mgf1sha1_test.json",
+        "rsa_oaep_3072_sha256_mgf1sha256_test.json",
+        "rsa_oaep_4096_sha256_mgf1sha256_test.json",
+    ] {
+        oaep_file(f);
+    }
+}
+
+fn mgf_name(g: &Value) -> &'static str {
+    match g["mgfSha"].as_str().unwrap() {
+        "SHA-1" => "SHA-1",
+        "SHA-256" => "SHA-256",
+        other => panic!("unsupported mgf {other}"),
+    }
 }

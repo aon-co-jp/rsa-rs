@@ -35,7 +35,7 @@ Sources are summarised, not quoted. Anything not confirmed is marked as such.
 ### 4. Wycheproof
 * 現行のテストベクタは `C2SP/wycheproof` の `testvectors_v1/` に統合されている。`rsa_signature_2048_sha256_test.json` の存在は BoringSSL のミラーで確認。
   OAEP のファイル名は今回**未確認**。出典: <https://github.com/C2SP/wycheproof>
-* **現状 (更新)**: RSA 署名検証 3 ファイルと OAEP 復号 2 ファイルを `core/tests/wycheproof/` に取り込み、全件通過 (2026-11-04)。残りのサイズ/ハッシュは今後。
+* **現状 (更新)**: RSA 署名検証 7 ファイルと OAEP 復号 5 ファイルを `core/tests/wycheproof/` に取り込み、全件通過 (2026-11-04)。SHA-1 署名・PSS・他の鍵長は今後。
   `core/tests/` に回帰テストとして追加する(未完了項目)。
 
 ### 5. 採用した対策 / 採用しなかった対策

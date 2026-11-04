@@ -80,7 +80,7 @@ rsa-090 = { package = "rsa", path = "../rsa-rs/compat-0.9" }               # rsa
   定数時間性の証明ではない。**命令列の確認 (逆アセンブルで秘密依存分岐・可変時間命令がないか) は未実施。** 数値演算の定数時間性は
   `crypto-bigint` 0.7.10+ に依存しており、ここでは検証していない。`ct.rs` のバイト列ヘルパは `black_box` で最適化を牽制しているが、
   コンパイラが分岐化しないことの保証はない。
-* Wycheproof (C2SP/wycheproof testvectors_v1) の RSA 署名検証 (2048/SHA-256・SHA-512、3072/SHA-256) と OAEP 復号 (SHA-256・SHA-1) を取り込み済み。他のサイズ/ハッシュ/PSS は未取り込み。
+* Wycheproof (C2SP/wycheproof testvectors_v1) の RSA 署名検証 7 ファイル (2048/SHA-256・384・512、3072/SHA-256・512、4096/SHA-256・512) と OAEP 復号 5 ファイル (2048/3072/4096、MGF1 が SHA-1 の組を含む) を取り込み済み、全件通過。SHA-1 署名・PSS・他の鍵長は未取り込み。
   OpenSSL 3.5.5 の出力と RFC 8017 §9.2 の DigestInfo 接頭辞も既知回答として使う。`scripts/gen-fixtures.sh` で再生成できる。
 * `core/tests/fixtures/` の `*.pem` は **使い捨てのテスト鍵**であり秘密ではない (シークレットスキャナに検出されうる)。
 * 返す OAEP 平文の長さは API 上、呼び出し側から見える。
@@ -159,3 +159,8 @@ fixtures contain throw-away test keys; Linux/WSL only.
 - **Исключения (интерфейсы, форму которых определяет чужой стандарт, а не наш собственный API)**: ACME, обратные вызовы OAuth/OIDC, вебхуки сторонних сервисов (например, GitHub), проверки работоспособности, раздача статических файлов, OTLP и тому подобное. Такие интерфейсы принимают обычный HTTP, как того требует соответствующий стандарт.
 - Эталонные реализации: `RPoem` (`open_runo.admin.v1.Admin`) и `open-easy-web` (`server/src/connect.rs`, `proto/open_easy_web/admin/v1/admin.proto`).
 - Примечание: соответствует ли код конкретного репозитория этой политике, зависит от самого репозитория. Данный раздел лишь фиксирует политику и не означает, что код уже изменён.
+
+### 導入済みリポジトリ / Adopted in (2026-11-04, `[patch.crates-io]` → rsa-rs v0.1.0)
+open-web-server (`main`, 258 tests pass) · RPoem · RS-Sync · webeditor-sftp · open-cg-cad。
+RPoem / RS-Sync / webeditor-sftp にはパッチ前から失敗するテスト(プロセス管理・`cmdkey` 等、WSL 環境依存)があり、パッチ前後で失敗集合が同一であることを確認済み。
+MySQL 実サーバでの接続試験は未実施(`sqlx-mysql` のビルドと openssl での OAEP 復号で代替)。
