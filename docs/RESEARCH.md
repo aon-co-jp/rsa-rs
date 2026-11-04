@@ -35,7 +35,7 @@ Sources are summarised, not quoted. Anything not confirmed is marked as such.
 ### 4. Wycheproof
 * 現行のテストベクタは `C2SP/wycheproof` の `testvectors_v1/` に統合されている。`rsa_signature_2048_sha256_test.json` の存在は BoringSSL のミラーで確認。
   OAEP のファイル名は今回**未確認**。出典: <https://github.com/C2SP/wycheproof>
-* **現状**: 未取り込み。理由: 取得はネットワークからのダウンロードで、取り込み前にファイルを確認する必要があるため。今後 `testvectors_v1/` から RSA 署名/OAEP を取り込み、
+* **現状 (更新)**: RSA 署名検証 3 ファイルと OAEP 復号 2 ファイルを `core/tests/wycheproof/` に取り込み、全件通過 (2026-11-04)。残りのサイズ/ハッシュは今後。
   `core/tests/` に回帰テストとして追加する(未完了項目)。
 
 ### 5. 採用した対策 / 採用しなかった対策
@@ -75,7 +75,7 @@ Sources are summarised, not quoted. Anything not confirmed is marked as such.
 
 ### 4. Wycheproof
 * Current vectors live in `testvectors_v1/` of `C2SP/wycheproof`; the RSA signature file name was confirmed via a BoringSSL mirror, the OAEP file name was not.
-* **Status**: not imported yet (needs a download and inspection first). To do: import RSA signature/OAEP vectors as regression tests in `core/tests/`.
+* **Status (updated)**: 3 RSA signature files and 2 OAEP files are imported under `core/tests/wycheproof/` and all pass (2026-11-04); other sizes/hashes remain.
 
 ### 5. Adopted vs not adopted
 See the table above (Japanese section): blinding, post-CRT check, single-error OAEP, verify-by-re-encoding adopted;

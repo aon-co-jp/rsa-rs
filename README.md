@@ -67,6 +67,7 @@ rsa-090 = { package = "rsa", path = "../rsa-rs/compat-0.9" }               # rsa
 | SSH 署名 ⇔ `ssh-keygen -Y verify` / `-Y sign` (rsa-sha2-256・512、生成鍵、改ざん検知) | 双方向 OK (`scripts/interop.sh`) |
 | `sqlx-mysql 0.8.6` を `compat-0.9` でビルド | OK (`scripts/sqlxmysql-check.sh`) |
 | `open-web-server` の別 clone で `sftp` (russh 0.63) 付きゲートウェイをビルド | OK (`scripts/owsrv-check.sh`) |
+| Wycheproof: RSA 署名検証 3 ファイル (valid/invalid 全件判定一致)、OAEP 復号 2 ファイル (Manger 系の不正パディングも全て拒否) | 全て pass (`core/tests/wycheproof.rs`) |
 | dudect 風の簡易タイミング計測 (OAEP 復号の正常/異常、RSADP の固定/ランダム入力) | \|t\| < 1 (n=1500/600)。下記の限界を参照 |
 
 ## 限界 (正直に)
@@ -76,8 +77,8 @@ rsa-090 = { package = "rsa", path = "../rsa-rs/compat-0.9" }               # rsa
   定数時間性の証明ではない。**命令列の確認 (逆アセンブルで秘密依存分岐・可変時間命令がないか) は未実施。** 数値演算の定数時間性は
   `crypto-bigint` 0.7.10+ に依存しており、ここでは検証していない。`ct.rs` のバイト列ヘルパは `black_box` で最適化を牽制しているが、
   コンパイラが分岐化しないことの保証はない。
-* Wycheproof のテストベクタは **未使用** (ネットワーク取得をしていないため)。既知回答は OpenSSL 3.5.5 の出力と RFC 8017 §9.2 の DigestInfo 接頭辞。
-  `scripts/gen-fixtures.sh` で再生成できる。
+* Wycheproof (C2SP/wycheproof testvectors_v1) の RSA 署名検証 (2048/SHA-256・SHA-512、3072/SHA-256) と OAEP 復号 (SHA-256・SHA-1) を取り込み済み。他のサイズ/ハッシュ/PSS は未取り込み。
+  OpenSSL 3.5.5 の出力と RFC 8017 §9.2 の DigestInfo 接頭辞も既知回答として使う。`scripts/gen-fixtures.sh` で再生成できる。
 * `core/tests/fixtures/` の `*.pem` は **使い捨てのテスト鍵**であり秘密ではない (シークレットスキャナに検出されうる)。
 * 返す OAEP 平文の長さは API 上、呼び出し側から見える。
 * Windows ネイティブでは未ビルド (WSL Ubuntu のみ)。`getrandom` 経由の OS 乱数に依存するので `no_std`/WASM 向けではない。
@@ -114,5 +115,5 @@ Verified: byte-identical PKCS#1 v1.5 signatures vs OpenSSL, decryption of OpenSS
 `open-web-server` clone (russh 0.63, `sftp`) build against the patch.
 
 Limitations: no audit; constant-time behaviour only sampled with a crude t-test (|t| < 1) — **no instruction-level review was done**
-and the bignum arithmetic's constant-time property is delegated to `crypto-bigint` 0.7.10+; no Wycheproof vectors (not fetched);
+and the bignum arithmetic's constant-time property is delegated to `crypto-bigint` 0.7.10+; Wycheproof only for RSA-2048/3072 PKCS#1 v1.5 verify and OAEP-2048 decrypt;
 fixtures contain throw-away test keys; Linux/WSL only.
