@@ -1,3 +1,4 @@
 /target
 /compat-*/target
 /compat-*/Cargo.lock
+.adopt-patches/
