@@ -29,7 +29,7 @@ serde = []
 rsa-rs-core = { path = "../core", default-features = false, features = ["os-rng"] }
 crypto-bigint = { version = ">=0.7.10, <0.8", default-features = false, features = ["alloc", "zeroize"] }
 digest = { version = "0.10.5", default-features = false, features = ["alloc"] }
-num-bigint = { package = "num-bigint-dig", version = "0.8.6", default-features = false }
+num-bigint = { package = "num-bigint-dig", version = "0.9.1", default-features = false }
 pkcs1 = { version = "0.7.5", default-features = false, features = ["alloc", "pkcs8"] }
 pkcs8 = { version = "0.10.2", default-features = false, features = ["alloc"] }
 rand_core = { version = "0.6.4", default-features = false }
