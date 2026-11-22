@@ -1,6 +1,6 @@
 # CLAUDE.md — rsa-rs
 
-`rsa` クレート (RUSTSEC-2023-0071) の互換置き換え。README.md が一次資料。ここは作業者向けの注意だけ。
+`rsa` クレート (RUSTSEC-2023-0071) の互換置き換え。README.md が一次資料、約束事は [POLICY.md](POLICY.md)。ここは作業者向けの注意だけ。
 This is a private home-grown replacement for part of the `rsa` crate. See README.md; below are working rules.
 
 ## 原則

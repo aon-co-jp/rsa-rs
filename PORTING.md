@@ -1,5 +1,7 @@
 # PORTING.md — 依存元への導入 / Adopting rsa-rs in a repository
 
+約束事(保証しないこと・変更ルール・報告先)は [POLICY.md](POLICY.md)。 / Rules and promises: see [POLICY.md](POLICY.md).
+
 ## 日本語
 
 ### 1. 何が `rsa` を引いているか確認
