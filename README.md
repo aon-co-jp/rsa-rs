@@ -3,7 +3,7 @@
 **日本語** | [English](#english) | [Deutsch](docs/README.de.md) | [Русский](docs/README.ru.md)
 
 > 状態表(最新の上流 rsa / RUSTSEC の状況・試験結果)は自動更新される [STATUS.md](STATUS.md) / [status.json](status.json) を参照。
-> **実験的・第三者監査なし**(下の「限界」参照)。
+> **実験的・第三者監査なし**(下の「限界」参照)。約束事・報告先は [POLICY.md](POLICY.md)(日本語 / English)。
 
 `rsa` クレートの **互換置き換え** (RUSTSEC-2023-0071 / Marvin Attack 対策)。aon-co-jp 配下のリポジトリが
 依存経由で使っている範囲だけを、RFC 8017 に基づき自前で実装したものです。GitHub で公開していますが、crates.io には公開しません。
