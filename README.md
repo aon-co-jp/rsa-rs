@@ -269,3 +269,16 @@ Missing on purpose or for now: PSS signatures, PKCS#1 v1.5 *encryption* (this on
 - **WASM по-прежнему остаётся технологией для интерфейса.** Изменилось лишь то, что вызываемый им API теперь построен на Connect.
 - Интерфейсы, форма которых задана внешним стандартом (ACME, обратные вызовы OAuth, вебхуки сторонних сервисов, проверки работоспособности, статические файлы, OTLP), остаются обычным HTTP.
 - **Если есть сомнения — выбирайте Connect.**
+
+## 状況 / Status (2026-11-24)
+
+**日本語.**
+* v0.1.0 タグ + GitHub Release 済み。依存元 9 リポジトリが `[patch]` で採用(README の採用表)。VPS の `version-control` 巡回では RUSTSEC-2023-0071 は「対策済み(差し替え)」として別枠に出る。
+* **REST は持たない**: これはライブラリで HTTP サーバー/クライアントのコードは無い。API 方針(Connect / gRPC)は他リポジトリ向けの記録。
+* 未了(正直に): 第三者監査なし / 命令列レベルの定数時間確認なし / MySQL 実サーバー試験なし / 上流 `rsa` 0.10.0 正式版との互換は未検証 / LINE 通知トークンは持ち主の設定待ち(version-control 側)。
+
+**English.**
+* Tagged v0.1.0 with a GitHub Release. Nine dependent repositories use it through `[patch]` (see the adoption table in the README). In the VPS `version-control` patrol, RUSTSEC-2023-0071 now shows as "mitigated (replaced)" in its own list.
+* **No REST here**: this is a library with no HTTP server or client code. The Connect / gRPC policy is a record for other repositories.
+* Not done (honestly): no third-party audit; no instruction-level constant-time review; no live MySQL server test; compatibility with upstream `rsa` 0.10.0 final is unverified; the LINE token is waiting for the owner (in `version-control`).
+
