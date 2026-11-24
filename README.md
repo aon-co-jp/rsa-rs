@@ -1,3 +1,5 @@
+> Latest translations / 翻訳の最新版: [0-LATEST-TRANSLATIONS.md](0-LATEST-TRANSLATIONS.md)
+
 # rsa-rs
 
 **日本語** | [English](#english) | [Deutsch](docs/README.de.md) | [Русский](docs/README.ru.md)
