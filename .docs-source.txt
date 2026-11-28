@@ -1,3 +1,3 @@
 source: aon-co-jp/rsa-rs
-commit: 839415ed070362a74bec5332c5172b9bda8569a5
-updated: 2026-11-27T06:13:40Z
+commit: 21933ecc50bd755d37f0dcba6ef3f93447eb21d7
+updated: 2026-11-28T05:21:35Z
