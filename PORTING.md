@@ -237,3 +237,21 @@ Never guess. If you are not sure how something should behave, check the upstream
 ## 完成まで作り切る方針 / Finish everything policy (2026-11-27)
 **日本語**: 全リポジトリで、**未確認は自動で確認し、未実施は実施し、未了は完成させる**(確認を求めず進める)。使用頻度が低いと判断される機能や、**1から作り直す大規模開発になる内容でも、やめずに最後まで開発・TEST・DEBUGする**(別の方式で済ませない、後回しにしない)。進め方: 調査(英語・日本語の検索とGitHub) → 設計 → 実装 → 実機/実データで確認 → 失敗は原因を直して再試験 → README・CLAUDE・PORTING・POLICY を日英で更新 → push。「できた」と書くのは実測した範囲だけ、確認できなかった所は「未確認」と正直に書く。例外(確認を取る): 元に戻せない削除、秘密の公開、所有者の認証・決済・実機操作が要るもの、利用者のシステム設定の変更。
 **English**: In every repository, **verify what is unverified, do what is not yet done, and finish what is unfinished** automatically, without asking. Even features that look rarely used, or work that means **a large rewrite from scratch, are developed, tested and debugged to the end** (no substituting another approach, no postponing). Method: research (English and Japanese search plus GitHub) -> design -> implement -> verify on real devices or data -> fix causes and retest on failure -> update README, CLAUDE, PORTING and POLICY in Japanese and English -> push. Write "done" only for what was measured, and say "unverified" honestly for the rest. Exceptions that still need confirmation: irreversible deletions, publishing secrets, anything needing the owner's authentication, payment or real-device actions, and changes to the user's system settings.
+## なぜ作ったか / Why this exists (2026-11-28)
+
+**日本語.**
+- Rust の `rsa` クレートには、処理時間のわずかな差を測ると秘密鍵が漏れうる弱点 **RUSTSEC-2023-0071(Marvin Attack)** があり、上流に**修正版がない**。版を上げても直らない。
+- aon-co-jp の多くのリポジトリは `rsa` を直接ではなく、依存の中で使っていた: `sqlx-mysql`(MySQL パスワードの OAEP 暗号化)と `ssh-key` / `russh`(SSH の RSA 署名・検証)。
+- そこで、それらが**実際に呼ぶ部分だけ**を RFC 8017 に沿って自前で実装し、`[patch.crates-io]` で本物と差し替えた(`compat-0.9` / `compat-0.10`)。弱点の入口になる PKCS#1 v1.5 の暗号化・復号はわざと作らない。秘密鍵の計算は毎回ブラインディングし、結果も検算する。
+- 正しさは OpenSSL の既知回答、`ssh-keygen` との相互運用、Wycheproof で確認した。
+- 結果: 依存元 9 リポジトリが採用し、`version-control` の巡回では「対策済み(差し替え)」と表示される。
+- ただし第三者監査なし・命令列レベルの定数時間確認なし。上流 `rsa` に修正版が出たらそちらへ戻す前提の**つなぎ**。
+
+**English.**
+- The Rust `rsa` crate has a weakness, **RUSTSEC-2023-0071 (the Marvin Attack)**: by measuring tiny timing differences, an attacker may learn a secret key. **There is no fixed version upstream**, so updating does not help.
+- Many aon-co-jp projects did not use `rsa` directly. It came in through other libraries: `sqlx-mysql` (OAEP encryption of the MySQL password) and `ssh-key` / `russh` (RSA signing and checking for SSH).
+- So we wrote **only the parts those libraries really call**, following RFC 8017, and swapped them in with `[patch.crates-io]` (`compat-0.9` / `compat-0.10`). We left out PKCS#1 v1.5 encryption and decryption on purpose, because that is the door the attack uses. Every private-key calculation is blinded with a fresh random number, and the result is double-checked.
+- We checked it with OpenSSL known answers, `ssh-keygen` interop and Wycheproof test vectors.
+- Result: nine dependent projects use it, and the `version-control` patrol shows the issue as "mitigated (replaced)".
+- But no outside expert has audited it, and nobody has reviewed the machine code for constant time. It is a **bridge**: when upstream `rsa` ships a fix, we plan to go back to it.
+
